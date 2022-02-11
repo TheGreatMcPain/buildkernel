@@ -80,6 +80,7 @@ declare -i COMPRESSINITRAMFS="${DEFAULTCOMPRESSINITRAMFS}"
 declare -i DISABLE_SUSPEND=0
 declare -i DISABLE_HIBERNATION=0
 declare -i DISABLE_LVM=0
+declare -i USE_CLANG=0
 # you can use xconfig etc if you like - override in /etc/buildkernel.conf
 CONFIGTYPE="menuconfig"
 # following should already be in the environment; but to be safe...
@@ -580,6 +581,13 @@ setup_final_variables() {
         USINGMODULES=0
     else
         USINGMODULES=1
+    fi
+
+    if ((USE_CLANG==1)); then
+        export LLVM=1
+        export LLVM_IAS=1
+        export CC="clang"
+        show "Compiling kernel with CLANG"
     fi
 }
 
