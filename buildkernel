@@ -73,6 +73,8 @@ ADDITIONALKERNELCMDS=""
 ADDITIONALDRACUTOPTS=""
 CMDLINE_REAL_ROOT="/dev/mapper/vg1-root"
 CMDLINE_REAL_RESUME="/dev/mapper/vg1-swap"
+DEFAULTCOMPRESSINITRAMFS_TYPE="XZ"
+COMPRESSINITRAMFS_TYPE="${DEFAULTCOMPRESSINITRAMFS_TYPE}"
 declare -i DEFAULTCREATEEFIBOOT=1
 declare -i CREATEEFIBOOT="${DEFAULTCREATEEFIBOOT}"
 declare -i DEFAULTCOMPRESSINITRAMFS=1
@@ -1794,21 +1796,26 @@ conform_config_file() {
     # help on low-memory systems; also the need to leave compression off seems
     # to no longer apply with modern kernels
     if ((COMPRESSINITRAMFS==1)); then
-        show "Using XZ compression for built-in initramfs"
+        show "Using ${COMPRESSINITRAMFS_TYPE} compression for built-in initramfs"
         unset_kernel_config "INITRAMFS_COMPRESSION_NONE"
-        for COMP_TYPE in "GZIP" "BZIP2" "LZMA" "LZO" "LZ4"; do
+        for COMP_TYPE in "GZIP" "BZIP2" "LZMA" "LZO" "LZ4" "XZ" "ZSTD"; do
             unset_kernel_config "INITRAMFS_COMPRESSION_${COMP_TYPE}"
         done
-        set_kernel_config "INITRAMFS_COMPRESSION_XZ" "y"
-        set_kernel_config "INITRAMFS_COMPRESSION" ".xz"
+
+        set_kernel_config "INITRAMFS_COMPRESSION_${COMPRESSINITRAMFS_TYPE}" "y"
+
+        ## NOT SURE IF THIS IS NEEDED ##
+        # set_kernel_config "INITRAMFS_COMPRESSION" ".xz"
     else
         warning "As requested, not compressing the built-in initramfs"
         warning "This can lead to boot failure on memory-constrained systems"
-        for COMP_TYPE in "GZIP" "BZIP2" "LZMA" "XZ" "LZO" "LZ4"; do
+        for COMP_TYPE in "GZIP" "BZIP2" "LZMA" "LZO" "LZ4" "XZ" "ZSTD"; do
             unset_kernel_config "INITRAMFS_COMPRESSION_${COMP_TYPE}"
         done
         set_kernel_config "INITRAMFS_COMPRESSION_NONE" "y"
-        set_kernel_config "INITRAMFS_COMPRESSION" ""
+        
+        ## NOT SURE IF THIS IS NEEDED ##
+        # set_kernel_config "INITRAMFS_COMPRESSION" ""
     fi
 
     # ensure we can get at the LUKS volume! note that these could also be
