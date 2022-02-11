@@ -75,6 +75,8 @@ CMDLINE_REAL_ROOT="/dev/mapper/vg1-root"
 CMDLINE_REAL_RESUME="/dev/mapper/vg1-swap"
 DEFAULTCOMPRESSINITRAMFS_TYPE="XZ"
 COMPRESSINITRAMFS_TYPE="${DEFAULTCOMPRESSINITRAMFS_TYPE}"
+DEFAULTCLANG_LTO="THIN"
+CLANG_LTO="${DEFAULTCLANG_LTO}"
 declare -i DEFAULTCREATEEFIBOOT=1
 declare -i CREATEEFIBOOT="${DEFAULTCREATEEFIBOOT}"
 declare -i DEFAULTCOMPRESSINITRAMFS=1
@@ -589,7 +591,6 @@ setup_final_variables() {
         export LLVM=1
         export LLVM_IAS=1
         export CC="clang"
-        show "Compiling kernel with CLANG"
     fi
 }
 
@@ -1816,6 +1817,18 @@ conform_config_file() {
         
         ## NOT SURE IF THIS IS NEEDED ##
         # set_kernel_config "INITRAMFS_COMPRESSION" ""
+    fi
+    # Set clang LTO configuration
+    if ((USE_CLANG==1)); then
+        show "Compiling with CLANG"
+        for LTO_TYPE in "THIN" "FULL"; do
+            unset_kernel_config "LTO_CLANG_${LTO_TYPE}"
+        done
+        if [[ "${CLANG_LTO}" != "NONE" ]]; then
+            show "Compiling with LTO (${CLANG_LTO})"
+
+            set_kernel_config "LTO_CLANG_${CLANG_LTO}" "y"
+        fi
     fi
 
     # ensure we can get at the LUKS volume! note that these could also be
