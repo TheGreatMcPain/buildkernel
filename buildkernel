@@ -31,7 +31,7 @@ shopt -s nullglob
 # ********************** variables *********************
 PROGNAME="$(basename "${0}")"
 CONFFILE="/etc/${PROGNAME}.conf"
-VERSION="1.0.37"
+VERSION="1.0.38"
 ETCPROFILE="/etc/profile"
 DEFAULTEFIBOOTFILE="bootx64.efi"
 EFIBOOTFILE="${DEFAULTEFIBOOTFILE}"
@@ -1985,7 +1985,7 @@ rebuild_external_modules_if_necessary() {
 create_initramfs_using_dracut() {
     show "Creating initramfs (uncompressed)..."
     # Use host-only to get the necessary commands for our setup.
-    DRACUT_OPTS="--host-only --no-hostonly-cmdline --force "
+    DRACUT_OPTS="--host-only --no-hostonly-cmdline --no-early-microcode --force "
     # Add crypt-gpg if using a luks-key.gpg file.
     if [ -n "${LUKSKEYFILE}" ]; then
         DRACUT_OPTS+="--add crypt-gpg "
@@ -2013,9 +2013,8 @@ unpack_initramfs_dracut() {
     else
         rm ${VERBOSITYFLAG} -rf "${INITRAMFSDIR}"/* # wipe any old data
     fi
-    # dracut puts the CPU microcode in a seperate cpio image that is at the beginning
-    # of the actual initramfs. We use the builtin skipcpio program to get to it.
-    (cd "${INITRAMFSDIR}"; /usr/lib/dracut/skipcpio ${UNCOMPRESSEDINITRAMFS} | cpio --extract)
+
+    (cd "${INITRAMFSDIR}"; cpio --extract --file="${UNCOMPRESSEDINITRAMFS}")
 }
 
 modify_initramfs() {
